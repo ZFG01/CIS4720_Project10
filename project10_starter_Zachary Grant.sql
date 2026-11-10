@@ -226,17 +226,25 @@ CREATE PROCEDURE add_member(IN p_first VARCHAR(30),
 IN p_last VARCHAR(30))
 BEGIN
 -- store the new member, with today as the joining date
-
-END
-
+INSERT INTO member (first_name, last_name, joined_on)
+VALUES (p_first_name, p_last_name, CURDATE());
+END;
 -- =================================================================
 -- STEP 5. make_payment
 --
 -- Copy the skeleton and write the INSERT.
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- Create a procedure called make_payment 
+-- takes a payment. the triggers do the bookkeeping
+CREATE PROCEDURE make_payment(IN p_member_id INT,
+IN p_amount DECIMAL(7,2),
+IN p_method VARCHAR(10))
+BEGIN
+-- store the payment and let the triggers do the rest
+INSERT INTO Payment (member_id, amount, method)
+VALUES (p_member_id, p_amount, p_method);
+END
 
 
 -- =================================================================
@@ -245,43 +253,80 @@ END
 -- Most of this one is yours. The handout walks you through it.
 -- =================================================================
 
--- your comment goes here
--- your statements go here
-
+-- Create a refund_payment procedure using a where clause comparing payment_id to the parameter.
+CREATE PROCEDURE refund_payment(IN p_payment_id INT)
+BEGIN
+    DELETE FROM payment
+    WHERE payment_id = p_payment_id;
+END;
 
 -- =================================================================
 -- STEP 7. Change list_members to show the biggest payers first
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- Change the list_members procedure to have the biggest payers be on top of the list.
+DROP PROCEDURE IF EXISTS list_members;
 
+CREATE PROCEDURE list_members()
+BEGIN
+    SELECT *
+    FROM member
+    ORDER BY total_paid DESC, last_name ASC;
+END;
 
+call list_members()
 -- =================================================================
 -- STEP 8. Run the club for a day
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- Add member Imani Brooks
+INSERT INTO member (member_id, first_name, last_name, total_paid)
+VALUES (104, 'Imani', 'Brooks', 0.00);
 
+CALL list_members();
 
+-- Imani makes a payment for 50 using a card
+CALL make_payment(104, 50.00, 'CARD');
+
+CALL member_history(104);
+-- Refund payment 5000 and nothing comes back
+CALL refund_payment(5000);
+
+Call list_members()
+
+SELECT * From payment_log
 -- =================================================================
 -- STEP 9. Three problems, left open on purpose
 --
 -- Under each call, a comment on what happened and what should have.
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- Add a payment of 20 in cash for member 999
+call make_payment(999,20.00,'CASH')
+-- Can't add payment to a member that doesn't exist
 
+call make_payment(103,-10.00,'CASH')
+call list_members()
+-- Should have declined because a payment of negative can't be possible
 
+call refund_payment(7777)
+-- procedure runs but nothing happens because payment id doesn't exist
+
+-- Fix the database
+call member_history(103)
+call refund_payment(5006)
+
+call list_members()
 -- =================================================================
 -- STEP 10. List every routine in club_db
 -- =================================================================
 
--- your comment goes here
--- your statements go here
-
+-- List every routine in the database
+-- every function and procedure in this schema
+SELECT routine_name, routine_type
+FROM information_schema.routines
+WHERE routine_schema = 'club_db'
+ORDER BY routine_name;
 
 -- =================================================================
 -- STEP 11 and 12. Push to GitHub and submit the URL
