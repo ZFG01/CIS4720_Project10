@@ -180,7 +180,16 @@ SELECT * FROM payment_log;
 -- STEP 2. list_members
 -- =================================================================
 
--- list_members 
+-- create procedure list_members
+CREATE PROCEDURE list_members()
+BEGIN
+Select member_id, first_name, last_name, total_paid
+FROM member
+order by last_name desc;
+
+END
+
+call list_members()
 
 
 
@@ -188,9 +197,22 @@ SELECT * FROM payment_log;
 -- STEP 3. member_history, with an IN parameter
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- create the procedure member_history with an in p_member_id
+CREATE PROCEDURE member_history (
+    IN p_member_id INT
+)
+BEGIN
+    SELECT
+        payment_id,
+        amount,
+        paid_on,
+        method
+    FROM payment
+    WHERE member_id = p_member_id;
+END;
 
+call member_history(100)
+call member_history(103)
 
 -- =================================================================
 -- STEP 4. add_member
@@ -199,8 +221,13 @@ SELECT * FROM payment_log;
 -- =================================================================
 
 -- your comment goes here
--- your statements go here
+-- adds a new member, who joins today
+CREATE PROCEDURE add_member(IN p_first VARCHAR(30),
+IN p_last VARCHAR(30))
+BEGIN
+-- store the new member, with today as the joining date
 
+END
 
 -- =================================================================
 -- STEP 5. make_payment
